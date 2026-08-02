@@ -1,0 +1,52 @@
+Metadata-Version: 2.4
+Name: aetheros
+Version: 0.1.0
+Summary: AetherOS foundation package for the AI agent runtime platform
+Requires-Python: >=3.11
+Description-Content-Type: text/markdown
+Requires-Dist: fastapi<1.0,>=0.112
+Requires-Dist: uvicorn[standard]<1.0,>=0.30
+Requires-Dist: pydantic<3.0,>=2.7
+Requires-Dist: pydantic-settings<3.0,>=2.6
+Requires-Dist: dependency-injector<5.0,>=4.44
+Requires-Dist: httpx<1.0,>=0.27
+Provides-Extra: dev
+Requires-Dist: black<25.0,>=24.0; extra == "dev"
+Requires-Dist: mypy<2.0,>=1.10; extra == "dev"
+Requires-Dist: pytest<9.0,>=8.0; extra == "dev"
+Requires-Dist: pytest-asyncio<1.0,>=0.23; extra == "dev"
+Requires-Dist: ruff<1.0,>=0.6; extra == "dev"
+
+# AetherOS Foundation
+
+This workspace contains the initial foundation for the AetherOS platform.
+
+## Included in this implementation
+
+- A Python package scaffold for the backend application
+- Configuration loading with pydantic-settings
+- A dependency injection container for wiring services and infrastructure components
+- A simple FastAPI application entrypoint
+- Unit tests for configuration loading and container initialization
+
+## Development commands
+
+Install dependencies:
+
+```bash
+pip install -e ".[dev]"
+```
+
+Run tests:
+
+```bash
+pytest
+```
+
+Run linting:
+
+```bash
+ruff check .
+black --check .
+mypy aetheros
+```
