@@ -3,6 +3,7 @@ from __future__ import annotations
 from fastapi import APIRouter, Depends, HTTPException
 
 from aetheros.application.agents.agent_runtime_service import AgentRuntimeService
+from aetheros.container import container
 from aetheros.domain.agents.models import AgentConfig
 from aetheros.domain.shared.exceptions import ConflictError, ValidationError
 from aetheros.domain.shared.value_objects import AgentId, TenantId
@@ -11,7 +12,7 @@ router = APIRouter(prefix="/agents", tags=["agents"])
 
 
 def get_agent_runtime_service() -> AgentRuntimeService:
-    return AgentRuntimeService()
+    return container.agent_runtime_service()
 
 
 @router.post("", status_code=201)

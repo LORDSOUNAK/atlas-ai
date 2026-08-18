@@ -1,19 +1,27 @@
 from __future__ import annotations
 
 from fastapi import APIRouter, Depends, HTTPException
+
 from aetheros.api.dependencies.auth import require_api_auth
-
-from aetheros.application.service_registry import tool_registry_service
 from aetheros.application.tools.tool_registry_service import ToolRegistryService
-from aetheros.domain.tools.models import ToolDefinition
-from aetheros.domain.shared.exceptions import ConflictError, NotFoundError, ValidationError
+from aetheros.container import container
+from aetheros.domain.shared.exceptions import (
+    ConflictError,
+    NotFoundError,
+    ValidationError,
+)
 from aetheros.domain.shared.value_objects import TenantId
+from aetheros.domain.tools.models import ToolDefinition
 
-router = APIRouter(prefix="/tools", tags=["tools"], dependencies=[Depends(require_api_auth)])
+router = APIRouter(
+    prefix="/tools",
+    tags=["tools"],
+    dependencies=[Depends(require_api_auth)],
+)
 
 
 def get_tool_registry_service() -> ToolRegistryService:
-    return tool_registry_service
+    return container.tool_registry_service()
 
 
 @router.post("", status_code=201)

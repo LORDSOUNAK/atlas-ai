@@ -6,7 +6,7 @@ from uuid import uuid4
 
 from pydantic import BaseModel, Field
 
-from aetheros.domain.shared.value_objects import ToolId, TenantId
+from aetheros.domain.shared.value_objects import TenantId, ToolId
 
 
 class ToolType(StrEnum):

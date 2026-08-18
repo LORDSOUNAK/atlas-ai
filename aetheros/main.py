@@ -5,9 +5,9 @@ from fastapi import FastAPI
 from aetheros.api.routers.agents import router as agents_router
 from aetheros.api.routers.health import router as health_router
 from aetheros.api.routers.hooks import router as hooks_router
-from aetheros.api.routers.workflows import router as workflows_router
 from aetheros.api.routers.memory import router as memory_router
 from aetheros.api.routers.tools import router as tools_router
+from aetheros.api.routers.workflows import router as workflows_router
 from aetheros.config.settings import load_settings
 from aetheros.container import Container
 

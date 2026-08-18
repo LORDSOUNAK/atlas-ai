@@ -1,12 +1,17 @@
 from __future__ import annotations
 
+from collections.abc import AsyncGenerator
+
 from aetheros.application.hooks.hook_engine_service import HookEngineService
+from aetheros.application.langgraph.runtime_api import (
+    ExecutionChunk,
+    ExecutionResult,
+    WorkflowRuntime,
+)
 from aetheros.domain.hooks.models import HookEventType
 from aetheros.domain.shared.exceptions import ConflictError, ValidationError
 from aetheros.domain.shared.value_objects import TenantId
 from aetheros.domain.workflows.models import WorkflowDefinition, WorkflowRun
-from aetheros.application.langgraph.runtime_api import WorkflowRuntime, ExecutionResult, ExecutionChunk
-from typing import AsyncGenerator
 
 
 class WorkflowService:
@@ -227,7 +232,7 @@ class WorkflowService:
         self._runs[run.id] = run
         return result
 
-    async def stream_run(self, run_id: str) -> AsyncGenerator[ExecutionChunk, None]:
+    async def stream_run(self, run_id: str) -> AsyncGenerator[ExecutionChunk]:
         """Return an async generator streaming execution chunks from the runtime."""
         run = self._runs.get(run_id)
         if run is None:

@@ -12,6 +12,7 @@ This task list is derived from the approved requirements and design documents fo
 
 ## Task 1 — Create project skeleton and dependency manifest
 - Type: Backend
+- Status: Completed
 - Estimated effort: 60–90 min
 - Depends on: None
 - Files to create/modify:

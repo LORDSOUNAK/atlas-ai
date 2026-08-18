@@ -1,11 +1,13 @@
 from __future__ import annotations
 
 import asyncio
-from typing import AsyncGenerator, Dict, Any
-from aetheros.application.langgraph.runtime_api import WorkflowRuntime, ExecutionChunk, ExecutionResult
-from aetheros.application.langgraph.runtime_api import ExecutionChunk as _EC
-from aetheros.application.langgraph.runtime_api import ExecutionResult as _ER
-import asyncio
+from collections.abc import AsyncGenerator
+from typing import Any
+
+from aetheros.application.langgraph.runtime_api import (
+    ExecutionResult,
+    WorkflowRuntime,
+)
 
 
 class LangGraphRuntime(WorkflowRuntime):
@@ -20,10 +22,10 @@ class LangGraphRuntime(WorkflowRuntime):
     """
 
     def __init__(self) -> None:
-        self._graphs: Dict[str, Dict[str, Any]] = {}
-        self._interrupt_events: Dict[str, asyncio.Event] = {}
+        self._graphs: dict[str, dict[str, Any]] = {}
+        self._interrupt_events: dict[str, asyncio.Event] = {}
 
-    def compile_graph(self, graph_id: str, definition: Dict[str, Any]) -> Dict[str, Any]:
+    def compile_graph(self, graph_id: str, definition: dict[str, Any]) -> dict[str, Any]:
         """Compile a workflow definition into a runtime graph state.
 
         For now this stores a shallow copy of the definition and returns a
@@ -39,13 +41,13 @@ class LangGraphRuntime(WorkflowRuntime):
         self._interrupt_events[graph_id] = asyncio.Event()
         return state
 
-    def execute(self, graph_id: str, config: Dict[str, Any] | None = None) -> ExecutionResult:
+    def execute(self, graph_id: str, config: dict[str, Any] | None = None) -> ExecutionResult:
         """Run the compiled graph synchronously by consuming the async stream.
 
         This is a convenience for tests and for simple runtimes. It will
         iterate the async stream to completion and gather outputs.
         """
-        outputs: list[Dict[str, Any]] = []
+        outputs: list[dict[str, Any]] = []
 
         async def _drain():
             async for chunk in self.astream(graph_id, config=config):
@@ -57,7 +59,7 @@ class LangGraphRuntime(WorkflowRuntime):
         asyncio.run(_drain())
         return ExecutionResult(graph_id=graph_id, status="COMPLETED", outputs=outputs)
 
-    async def astream(self, graph_id: str, config: Dict[str, Any] | None = None) -> AsyncGenerator[Dict[str, Any], None]:
+    async def astream(self, graph_id: str, config: dict[str, Any] | None = None) -> AsyncGenerator[dict[str, Any]]:
         """Asynchronously execute the compiled graph, yielding partial results.
 
         This is a simple placeholder: it yields one "node result" per second.
@@ -103,7 +105,7 @@ class LangGraphRuntime(WorkflowRuntime):
             # Clear event and set a fresh one to allow future interrupts
             ev.clear()
 
-    async def checkpoint(self, graph_id: str) -> Dict[str, Any]:
+    async def checkpoint(self, graph_id: str) -> dict[str, Any]:
         """Return the current run state for persistence.
 
         Callers may await this before persisting to their storage layer.

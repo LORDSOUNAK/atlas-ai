@@ -1,7 +1,11 @@
 from __future__ import annotations
 
 from aetheros.application.tools.tool_registry_service import ToolRegistryService
-from aetheros.domain.shared.exceptions import ConflictError, NotFoundError, ValidationError
+from aetheros.domain.shared.exceptions import (
+    ConflictError,
+    NotFoundError,
+    ValidationError,
+)
 from aetheros.domain.shared.value_objects import TenantId
 from aetheros.domain.tools.models import ToolDefinition, ToolSchema, ToolType
 

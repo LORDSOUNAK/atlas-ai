@@ -3,7 +3,11 @@ from __future__ import annotations
 from typing import Any
 
 from aetheros.domain.hooks.models import HookActionType, HookDefinition, HookEventType
-from aetheros.domain.shared.exceptions import ConflictError, NotFoundError, ValidationError
+from aetheros.domain.shared.exceptions import (
+    ConflictError,
+    NotFoundError,
+    ValidationError,
+)
 from aetheros.domain.shared.value_objects import TenantId
 
 

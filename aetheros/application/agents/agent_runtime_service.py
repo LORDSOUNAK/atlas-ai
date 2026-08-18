@@ -1,11 +1,16 @@
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from aetheros.domain.agents.models import Agent, AgentConfig, AgentSession, AgentStatus
 from aetheros.domain.shared.exceptions import ConflictError, ValidationError
-from aetheros.domain.shared.value_objects import AgentId, SessionId, TenantId
+from aetheros.domain.shared.value_objects import (
+    AgentId,
+    SessionId,
+    TenantId,
+    utc_now_iso,
+)
 
 
 class AgentRuntimeService:
@@ -16,9 +21,7 @@ class AgentRuntimeService:
         self._sessions: dict[SessionId, AgentSession] = {}
 
     def _next_timestamp(self) -> str:
-        return datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace(
-            "+00:00", "Z"
-        )
+        return utc_now_iso()
 
     def _get_agent(self, agent_id: AgentId) -> Agent:
         agent = self._agents.get(agent_id)

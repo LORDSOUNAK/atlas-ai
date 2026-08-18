@@ -6,7 +6,12 @@ from uuid import uuid4
 
 from pydantic import BaseModel, Field
 
-from aetheros.domain.shared.value_objects import AgentId, SessionId, TenantId
+from aetheros.domain.shared.value_objects import (
+    AgentId,
+    SessionId,
+    TenantId,
+    utc_now_iso,
+)
 
 
 class AgentStatus(StrEnum):
@@ -34,8 +39,8 @@ class Agent(BaseModel):
     name: str
     config: AgentConfig
     status: AgentStatus = AgentStatus.IDLE
-    created_at: str = Field(default_factory=lambda: "2026-01-01T00:00:00Z")
-    updated_at: str = Field(default_factory=lambda: "2026-01-01T00:00:00Z")
+    created_at: str = Field(default_factory=utc_now_iso)
+    updated_at: str = Field(default_factory=utc_now_iso)
 
 
 class AgentSession(BaseModel):
@@ -43,7 +48,7 @@ class AgentSession(BaseModel):
     agent_id: AgentId
     tenant_id: TenantId
     status: AgentStatus = AgentStatus.RUNNING
-    started_at: str = Field(default_factory=lambda: "2026-01-01T00:00:00Z")
+    started_at: str = Field(default_factory=utc_now_iso)
     ended_at: str | None = None
     iteration_count: int = 0
     input: dict[str, Any] = Field(default_factory=dict)

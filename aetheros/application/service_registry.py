@@ -1,13 +1,10 @@
 from __future__ import annotations
 
-from aetheros.application.hooks.hook_engine_service import HookEngineService
-from aetheros.application.workflows.workflow_service import WorkflowService
-from aetheros.application.memory.memory_service import MemoryService
-from aetheros.application.tools.tool_registry_service import ToolRegistryService
-from aetheros.application.langgraph.langgraph_runtime import LangGraphRuntime
+from aetheros.container import container
 
-hook_engine_service = HookEngineService()
-langgraph_runtime = LangGraphRuntime()
-workflow_service = WorkflowService(hook_engine=hook_engine_service, workflow_runtime=langgraph_runtime)
-memory_service = MemoryService()
-tool_registry_service = ToolRegistryService()
+hook_engine_service = container.hook_engine_service()
+langgraph_runtime = container.langgraph_runtime()
+workflow_service = container.workflow_service()
+memory_service = container.memory_service()
+tool_registry_service = container.tool_registry_service()
+agent_runtime_service = container.agent_runtime_service()

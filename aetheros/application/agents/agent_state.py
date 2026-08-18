@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, TypedDict, NotRequired
+from typing import Any, TypedDict
 
 
 class AgentState(TypedDict, total=False):

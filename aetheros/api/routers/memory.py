@@ -1,19 +1,23 @@
 from __future__ import annotations
 
 from fastapi import APIRouter, Depends, HTTPException
-from aetheros.api.dependencies.auth import require_api_auth
 
+from aetheros.api.dependencies.auth import require_api_auth
 from aetheros.application.memory.memory_service import MemoryService
-from aetheros.application.service_registry import memory_service
+from aetheros.container import container
 from aetheros.domain.memory.models import MemoryEntry, MemoryScope
 from aetheros.domain.shared.exceptions import ValidationError
 from aetheros.domain.shared.value_objects import TenantId
 
-router = APIRouter(prefix="/memory", tags=["memory"], dependencies=[Depends(require_api_auth)])
+router = APIRouter(
+    prefix="/memory",
+    tags=["memory"],
+    dependencies=[Depends(require_api_auth)],
+)
 
 
 def get_memory_service() -> MemoryService:
-    return memory_service
+    return container.memory_service()
 
 
 @router.post("", status_code=201)
@@ -25,7 +29,9 @@ async def create_entry(
     service: MemoryService = Depends(get_memory_service),
 ) -> MemoryEntry:
     try:
-        return service.create_entry(tenant_id=tenant_id, scope=scope, key=key, value=value)
+        return service.create_entry(
+            tenant_id=tenant_id, scope=scope, key=key, value=value
+        )
     except ValidationError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
 

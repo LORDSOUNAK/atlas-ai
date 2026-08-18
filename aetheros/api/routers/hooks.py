@@ -3,18 +3,20 @@ from __future__ import annotations
 from fastapi import APIRouter, Body, Depends, HTTPException
 
 from aetheros.application.hooks.hook_engine_service import HookEngineService
+from aetheros.container import container
 from aetheros.domain.hooks.models import HookDefinition, HookEventType
-from aetheros.domain.shared.exceptions import ConflictError, NotFoundError, ValidationError
+from aetheros.domain.shared.exceptions import (
+    ConflictError,
+    NotFoundError,
+    ValidationError,
+)
 from aetheros.domain.shared.value_objects import TenantId
 
 router = APIRouter(prefix="/hooks", tags=["hooks"])
 
 
-from aetheros.application.service_registry import hook_engine_service
-
-
 def get_hook_engine_service() -> HookEngineService:
-    return hook_engine_service
+    return container.hook_engine_service()
 
 
 @router.post("", status_code=201)

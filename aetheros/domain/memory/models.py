@@ -6,7 +6,11 @@ from uuid import uuid4
 
 from pydantic import BaseModel, Field
 
-from aetheros.domain.shared.value_objects import MemoryEntryId, TenantId
+from aetheros.domain.shared.value_objects import (
+    MemoryEntryId,
+    TenantId,
+    utc_now_iso,
+)
 
 
 class MemoryScope(StrEnum):
@@ -22,5 +26,5 @@ class MemoryEntry(BaseModel):
     scope: MemoryScope
     key: str
     value: Any
-    created_at: str = Field(default_factory=lambda: "2026-01-01T00:00:00Z")
+    created_at: str = Field(default_factory=utc_now_iso)
     metadata: dict[str, Any] = Field(default_factory=dict)

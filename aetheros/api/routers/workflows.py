@@ -2,8 +2,8 @@ from __future__ import annotations
 
 from fastapi import APIRouter, Depends, HTTPException
 
-from aetheros.application.service_registry import workflow_service
 from aetheros.application.workflows.workflow_service import WorkflowService
+from aetheros.container import container
 from aetheros.domain.shared.exceptions import ConflictError, ValidationError
 from aetheros.domain.shared.value_objects import TenantId
 from aetheros.domain.workflows.models import WorkflowDefinition, WorkflowRun
@@ -12,7 +12,7 @@ router = APIRouter(prefix="/workflows", tags=["workflows"])
 
 
 def get_workflow_service() -> WorkflowService:
-    return workflow_service
+    return container.workflow_service()
 
 
 @router.post("", status_code=201)

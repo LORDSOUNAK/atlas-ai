@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from fastapi import Depends, Header, HTTPException, Security
+from fastapi import Header, HTTPException, Security
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
 from aetheros.config.settings import load_settings
