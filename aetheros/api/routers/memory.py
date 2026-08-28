@@ -6,8 +6,8 @@ from aetheros.api.dependencies.auth import require_api_auth
 from aetheros.application.memory.memory_service import MemoryService
 from aetheros.container import container
 from aetheros.domain.memory.models import MemoryEntry, MemoryScope
-from aetheros.domain.shared.exceptions import ValidationError
-from aetheros.domain.shared.value_objects import TenantId
+from aetheros.domain.shared.exceptions import NotFoundError, ValidationError
+from aetheros.domain.shared.value_objects import MemoryEntryId, TenantId
 
 router = APIRouter(
     prefix="/memory",
@@ -44,6 +44,17 @@ async def list_entries(
     service: MemoryService = Depends(get_memory_service),
 ) -> list[MemoryEntry]:
     return service.get_entries(tenant_id=tenant_id, scope=scope, key=key)
+
+
+@router.get("/{entry_id}")
+async def get_entry(
+    entry_id: str,
+    service: MemoryService = Depends(get_memory_service),
+) -> MemoryEntry:
+    try:
+        return service.get_entry(MemoryEntryId(entry_id))
+    except NotFoundError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
 
 
 @router.delete("")

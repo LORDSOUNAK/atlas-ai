@@ -27,17 +27,25 @@ class WorkflowRuntime(abc.ABC):
     """Abstract runtime interface for executing compiled workflow graphs."""
 
     @abc.abstractmethod
-    def compile_graph(self, graph_id: str, definition: dict[str, Any]) -> dict[str, Any]:
+    def compile_graph(
+        self, graph_id: str, definition: dict[str, Any]
+    ) -> dict[str, Any]:
         pass
 
     @abc.abstractmethod
-    def execute(self, graph_id: str, config: dict[str, Any] | None = None) -> ExecutionResult:
-        """Synchronous execution that runs to completion and returns an ExecutionResult."""
+    def execute(
+        self, graph_id: str, config: dict[str, Any] | None = None
+    ) -> ExecutionResult:
+        """Synchronous execution that runs to completion and returns an
+        ExecutionResult."""
         pass
 
     @abc.abstractmethod
-    async def astream(self, graph_id: str, config: dict[str, Any] | None = None) -> AsyncGenerator[ExecutionChunk]:
-        """Asynchronous stream of execution chunks for the given compiled graph."""
+    async def astream(
+        self, graph_id: str, config: dict[str, Any] | None = None
+    ) -> AsyncGenerator[ExecutionChunk]:
+        """Asynchronous stream of execution chunks for the given compiled
+        graph."""
         pass
 
     @abc.abstractmethod

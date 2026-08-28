@@ -52,6 +52,17 @@ async def get_hook(
         raise HTTPException(status_code=404, detail=str(exc)) from exc
 
 
+@router.delete("/{hook_id}", status_code=204)
+async def delete_hook(
+    hook_id: str,
+    service: HookEngineService = Depends(get_hook_engine_service),
+) -> None:
+    try:
+        service.delete_hook(hook_id)
+    except NotFoundError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+
 @router.post("/execute")
 async def execute_hooks(
     event_type: HookEventType,

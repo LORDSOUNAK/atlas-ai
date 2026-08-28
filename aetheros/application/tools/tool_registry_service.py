@@ -30,9 +30,25 @@ class ToolRegistryService:
             raise NotFoundError("Tool not found")
         return tool
 
+    def get_tool_by_name(
+        self, name: str, tenant_id: TenantId | None = None
+    ) -> ToolDefinition:
+        for tool in self._tools.values():
+            if tool.name == name and (
+                tenant_id is None or tool.tenant_id == tenant_id
+            ):
+                return tool
+        raise NotFoundError("Tool not found")
+
     def list_tools(self, tenant_id: TenantId | None = None) -> list[ToolDefinition]:
         return [
             tool
             for tool in self._tools.values()
             if tenant_id is None or tool.tenant_id == tenant_id
         ]
+
+    def delete_tool(self, tool_id: str) -> None:
+        tool = self._tools.get(tool_id)
+        if tool is None:
+            raise NotFoundError("Tool not found")
+        del self._tools[tool_id]

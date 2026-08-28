@@ -1,8 +1,10 @@
 from __future__ import annotations
 
+import pytest
+
 from aetheros.application.memory.memory_service import MemoryService
 from aetheros.domain.memory.models import MemoryEntry, MemoryScope
-from aetheros.domain.shared.exceptions import ValidationError
+from aetheros.domain.shared.exceptions import NotFoundError, ValidationError
 from aetheros.domain.shared.value_objects import TenantId
 
 
@@ -20,7 +22,9 @@ def test_create_memory_entry_and_retrieve_by_scope() -> None:
     assert entry.scope == MemoryScope.SESSION
     assert entry.key == "user_intent"
 
-    entries = service.get_entries(tenant_id=TenantId("tenant-1"), scope=MemoryScope.SESSION)
+    entries = service.get_entries(
+        tenant_id=TenantId("tenant-1"), scope=MemoryScope.SESSION
+    )
 
     assert len(entries) == 1
     assert entries[0].id == entry.id
@@ -50,7 +54,9 @@ def test_get_entries_filters_by_key_and_scope() -> None:
     service.create_entry(tenant_id=tenant, scope=MemoryScope.SESSION, key="b", value=2)
     service.create_entry(tenant_id=tenant, scope=MemoryScope.TENANT, key="a", value=3)
 
-    entries = service.get_entries(tenant_id=tenant, scope=MemoryScope.SESSION, key="a")
+    entries = service.get_entries(
+        tenant_id=tenant, scope=MemoryScope.SESSION, key="a"
+    )
 
     assert len(entries) == 1
     assert entries[0].value == 1
@@ -69,3 +75,26 @@ def test_clear_entries_removes_matching_scope_entries() -> None:
     remaining = service.get_entries(tenant_id=tenant)
     assert len(remaining) == 1
     assert remaining[0].scope == MemoryScope.TENANT
+
+
+def test_get_entry_returns_existing_entry() -> None:
+    service = MemoryService()
+    entry = service.create_entry(
+        tenant_id=TenantId("tenant-1"),
+        scope=MemoryScope.SESSION,
+        key="k1",
+        value="v1",
+    )
+
+    found = service.get_entry(entry.id)
+
+    assert found.id == entry.id
+    assert found.key == "k1"
+    assert found.value == "v1"
+
+
+def test_get_entry_raises_for_missing_entry() -> None:
+    service = MemoryService()
+
+    with pytest.raises(NotFoundError, match="not found"):
+        service.get_entry("missing-entry")

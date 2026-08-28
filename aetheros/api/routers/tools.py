@@ -55,3 +55,26 @@ async def get_tool(
         return service.get_tool(tool_id)
     except NotFoundError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+
+@router.get("/name/{tool_name}")
+async def get_tool_by_name(
+    tool_name: str,
+    tenant_id: TenantId | None = None,
+    service: ToolRegistryService = Depends(get_tool_registry_service),
+) -> ToolDefinition:
+    try:
+        return service.get_tool_by_name(tool_name, tenant_id=tenant_id)
+    except NotFoundError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+
+@router.delete("/{tool_id}", status_code=204)
+async def delete_tool(
+    tool_id: str,
+    service: ToolRegistryService = Depends(get_tool_registry_service),
+) -> None:
+    try:
+        service.delete_tool(tool_id)
+    except NotFoundError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc

@@ -9,8 +9,12 @@ from aetheros.application.langgraph.runtime_api import (
     WorkflowRuntime,
 )
 from aetheros.domain.hooks.models import HookEventType
-from aetheros.domain.shared.exceptions import ConflictError, ValidationError
-from aetheros.domain.shared.value_objects import TenantId
+from aetheros.domain.shared.exceptions import (
+    ConflictError,
+    NotFoundError,
+    ValidationError,
+)
+from aetheros.domain.shared.value_objects import TenantId, utc_now_iso
 from aetheros.domain.workflows.models import WorkflowDefinition, WorkflowRun
 
 
@@ -54,6 +58,30 @@ class WorkflowService:
         self._definitions[definition.name] = definition
         return definition
 
+    def list_workflows(self) -> list[WorkflowDefinition]:
+        return list(self._definitions.values())
+
+    def get_workflow(self, workflow_name: str) -> WorkflowDefinition:
+        definition = self._definitions.get(workflow_name)
+        if definition is None:
+            raise NotFoundError("Workflow not found")
+        return definition
+
+    def delete_workflow(self, workflow_name: str) -> None:
+        definition = self._definitions.get(workflow_name)
+        if definition is None:
+            raise NotFoundError("Workflow not found")
+        # Prevent deletion if there are active runs
+        active_runs = [
+            run
+            for run in self._runs.values()
+            if run.workflow_id == workflow_name
+            and run.status in {"RUNNING", "PAUSED", "PENDING"}
+        ]
+        if active_runs:
+            raise ConflictError("Cannot delete workflow with active runs")
+        del self._definitions[workflow_name]
+
     def _snapshot_run(self, run: WorkflowRun) -> WorkflowRun:
         return run.model_copy(deep=True)
 
@@ -75,7 +103,10 @@ class WorkflowService:
         if workflow_name not in self._definitions:
             raise ValidationError("Workflow not found")
 
-        pre_payload = {"workflow_name": workflow_name, "tenant_id": tenant_id}
+        pre_payload: dict[str, object] = {
+            "workflow_name": workflow_name,
+            "tenant_id": tenant_id,
+        }
         if self._hook_engine is not None:
             pre_payload = self._hook_engine.execute_hooks(
                 event_type=HookEventType.PRE_WORKFLOW_RUN,
@@ -99,6 +130,7 @@ class WorkflowService:
             tenant_id=tenant_id,
             status="RUNNING",
             state=pre_payload,
+            started_at=utc_now_iso(),
         )
         self._runs[run.id] = run
 
@@ -116,6 +148,20 @@ class WorkflowService:
                 run.status = "CANCELLED"
                 run.state = post_payload
         return self._snapshot_run(run)
+
+    def get_run(self, run_id: str) -> WorkflowRun:
+        run = self._runs.get(run_id)
+        if run is None:
+            raise NotFoundError("Run not found")
+        return run
+
+    def delete_run(self, run_id: str) -> None:
+        run = self._runs.get(run_id)
+        if run is None:
+            raise NotFoundError("Run not found")
+        if run.status in {"RUNNING", "PAUSED"}:
+            raise ConflictError("Cannot delete a run that is running or paused")
+        del self._runs[run_id]
 
     def pause_run(self, run_id: str) -> WorkflowRun:
         run = self._runs.get(run_id)
@@ -190,6 +236,7 @@ class WorkflowService:
             return self._snapshot_run(run)
 
         run.status = "CANCELLED"
+        run.ended_at = utc_now_iso()
         run.state = pre_payload
 
         post_payload = self._execute_workflow_hook(
@@ -202,13 +249,13 @@ class WorkflowService:
         return self._snapshot_run(run)
 
     def list_runs(self, tenant_id: TenantId) -> list[WorkflowRun]:
-        return list(self._runs.values())
+        return [run for run in self._runs.values() if run.tenant_id == tenant_id]
 
     def execute_run_sync(self, run_id: str) -> ExecutionResult:
-        """Execute the workflow run synchronously to completion using the injected runtime.
+        """Execute the workflow run synchronously to completion.
 
-        This method keeps WorkflowService decoupled from the runtime implementation
-        by depending only on `WorkflowRuntime` abstraction.
+        This method keeps WorkflowService decoupled from the runtime
+        implementation by depending only on the WorkflowRuntime abstraction.
         """
         run = self._runs.get(run_id)
         if run is None:
@@ -222,13 +269,16 @@ class WorkflowService:
 
         graph_id = run.id
         # compile graph
-        self._workflow_runtime.compile_graph(graph_id=graph_id, definition=definition.model_dump())
+        self._workflow_runtime.compile_graph(
+            graph_id=graph_id, definition=definition.model_dump()
+        )
         # execute synchronously
         result = self._workflow_runtime.execute(graph_id=graph_id)
 
         # Update run status based on result
         run.state = {"last_result": result}
         run.status = "COMPLETED" if result.status == "COMPLETED" else "FAILED"
+        run.ended_at = utc_now_iso()
         self._runs[run.id] = run
         return result
 
@@ -245,6 +295,8 @@ class WorkflowService:
             raise ValidationError("Workflow not found")
 
         graph_id = run.id
-        self._workflow_runtime.compile_graph(graph_id=graph_id, definition=definition.model_dump())
+        self._workflow_runtime.compile_graph(
+            graph_id=graph_id, definition=definition.model_dump()
+        )
         async for chunk in self._workflow_runtime.astream(graph_id=graph_id):
             yield chunk

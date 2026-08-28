@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from datetime import UTC, datetime
 from typing import Any
 
 from aetheros.domain.agents.models import Agent, AgentConfig, AgentSession, AgentStatus
@@ -23,17 +22,23 @@ class AgentRuntimeService:
     def _next_timestamp(self) -> str:
         return utc_now_iso()
 
-    def _get_agent(self, agent_id: AgentId) -> Agent:
+    def get_agent(self, agent_id: AgentId) -> Agent:
         agent = self._agents.get(agent_id)
         if agent is None:
             raise ValidationError("Agent not found")
         return agent
 
-    def _get_session(self, session_id: SessionId) -> AgentSession:
+    def get_session(self, session_id: SessionId) -> AgentSession:
         session = self._sessions.get(session_id)
         if session is None:
             raise ValidationError("Session not found")
         return session
+
+    def _get_agent(self, agent_id: AgentId) -> Agent:
+        return self.get_agent(agent_id)
+
+    def _get_session(self, session_id: SessionId) -> AgentSession:
+        return self.get_session(session_id)
 
     def _set_agent_status(self, agent_id: AgentId, status: AgentStatus) -> None:
         agent = self._get_agent(agent_id)
@@ -107,6 +112,12 @@ class AgentRuntimeService:
         session.status = AgentStatus.RUNNING
         self._set_agent_status(session.agent_id, AgentStatus.RUNNING)
         return self._snapshot_session(session)
+
+    def delete_agent(self, agent_id: AgentId) -> None:
+        agent = self._get_agent(agent_id)
+        if agent.status in {AgentStatus.RUNNING, AgentStatus.PAUSED}:
+            raise ConflictError("Cannot delete an agent that is running or paused")
+        del self._agents[agent_id]
 
     def list_agents(
         self,

@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import pytest
+
 from aetheros.application.hooks.hook_engine_service import HookEngineService
 from aetheros.domain.hooks.models import HookActionType, HookDefinition, HookEventType
 from aetheros.domain.shared.exceptions import (
@@ -134,3 +136,48 @@ def test_execute_hooks_aborts_on_abort_action() -> None:
     assert output["hook_aborted"] is True
     assert output["aborted_hook_id"] == hook_abort.id
     assert f"hook_{hook_continue.id}" not in output
+
+
+def test_delete_hook_removes_registered_hook() -> None:
+    service = HookEngineService()
+    hook = HookDefinition(
+        tenant_id=TenantId("tenant-1"),
+        name="to-delete",
+        event_type=HookEventType.PRE_AGENT_RUN,
+    )
+    service.register_hook(hook)
+
+    service.delete_hook(hook.id)
+
+    assert len(service.list_hooks()) == 0
+
+
+def test_delete_hook_raises_for_missing_hook() -> None:
+    service = HookEngineService()
+
+    with pytest.raises(NotFoundError, match="not found"):
+        service.delete_hook("missing-hook")
+
+
+def test_list_hooks_filters_by_tenant() -> None:
+    service = HookEngineService()
+    hook_a = HookDefinition(
+        tenant_id=TenantId("tenant-1"),
+        name="hook-a",
+        event_type=HookEventType.PRE_AGENT_RUN,
+    )
+    hook_b = HookDefinition(
+        tenant_id=TenantId("tenant-2"),
+        name="hook-b",
+        event_type=HookEventType.PRE_AGENT_RUN,
+    )
+    service.register_hook(hook_a)
+    service.register_hook(hook_b)
+
+    hooks_t1 = service.list_hooks(tenant_id=TenantId("tenant-1"))
+    hooks_t2 = service.list_hooks(tenant_id=TenantId("tenant-2"))
+
+    assert len(hooks_t1) == 1
+    assert len(hooks_t2) == 1
+    assert hooks_t1[0].tenant_id == TenantId("tenant-1")
+    assert hooks_t2[0].tenant_id == TenantId("tenant-2")

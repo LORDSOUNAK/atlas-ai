@@ -39,6 +39,12 @@ class HookEngineService:
             if tenant_id is None or hook.tenant_id == tenant_id
         ]
 
+    def delete_hook(self, hook_id: str) -> None:
+        hook = self._hooks.get(hook_id)
+        if hook is None:
+            raise NotFoundError("Hook not found")
+        del self._hooks[hook_id]
+
     def execute_hooks(
         self,
         event_type: HookEventType,

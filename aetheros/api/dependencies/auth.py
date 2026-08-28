@@ -13,7 +13,8 @@ def require_api_auth(
     x_api_key: str | None = Header(default=None, alias="X-API-Key"),
 ) -> None:
     settings = load_settings()
-    # Allow either a matching static API key (X-API-Key) or a Bearer token equal to jwt_secret_key
+    # Allow either a matching static API key (X-API-Key) or a Bearer
+    # token equal to jwt_secret_key
     if x_api_key and settings.api_key and x_api_key == settings.api_key:
         return None
 

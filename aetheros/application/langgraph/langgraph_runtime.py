@@ -25,7 +25,9 @@ class LangGraphRuntime(WorkflowRuntime):
         self._graphs: dict[str, dict[str, Any]] = {}
         self._interrupt_events: dict[str, asyncio.Event] = {}
 
-    def compile_graph(self, graph_id: str, definition: dict[str, Any]) -> dict[str, Any]:
+    def compile_graph(
+        self, graph_id: str, definition: dict[str, Any]
+    ) -> dict[str, Any]:
         """Compile a workflow definition into a runtime graph state.
 
         For now this stores a shallow copy of the definition and returns a
@@ -41,7 +43,9 @@ class LangGraphRuntime(WorkflowRuntime):
         self._interrupt_events[graph_id] = asyncio.Event()
         return state
 
-    def execute(self, graph_id: str, config: dict[str, Any] | None = None) -> ExecutionResult:
+    def execute(
+        self, graph_id: str, config: dict[str, Any] | None = None
+    ) -> ExecutionResult:
         """Run the compiled graph synchronously by consuming the async stream.
 
         This is a convenience for tests and for simple runtimes. It will
@@ -57,9 +61,13 @@ class LangGraphRuntime(WorkflowRuntime):
 
         # Run the async drain synchronously using asyncio.run
         asyncio.run(_drain())
-        return ExecutionResult(graph_id=graph_id, status="COMPLETED", outputs=outputs)
+        return ExecutionResult(
+            graph_id=graph_id, status="COMPLETED", outputs=outputs
+        )
 
-    async def astream(self, graph_id: str, config: dict[str, Any] | None = None) -> AsyncGenerator[dict[str, Any]]:
+    async def astream(
+        self, graph_id: str, config: dict[str, Any] | None = None
+    ) -> AsyncGenerator[dict[str, Any]]:
         """Asynchronously execute the compiled graph, yielding partial results.
 
         This is a simple placeholder: it yields one "node result" per second.
@@ -79,18 +87,31 @@ class LangGraphRuntime(WorkflowRuntime):
             event = self._interrupt_events[graph_id]
             if event.is_set():
                 # Pause until cleared by resume
-                yield {"graph_id": graph_id, "event": "paused", "position": graph["position"]}
+                yield {
+                    "graph_id": graph_id,
+                    "event": "paused",
+                    "position": graph["position"],
+                }
                 await event.wait()
 
             # Simulate work on the current node
             await asyncio.sleep(0.2)
             node_idx = graph["position"]
-            result = {"graph_id": graph_id, "event": "node", "node_index": node_idx, "output": {"text": f"output-{node_idx}"}}
+            result = {
+                "graph_id": graph_id,
+                "event": "node",
+                "node_index": node_idx,
+                "output": {"text": f"output-{node_idx}"},
+            }
             # Advance position
             graph["position"] += 1
             yield result
 
-        yield {"graph_id": graph_id, "event": "complete", "position": graph["position"]}
+        yield {
+            "graph_id": graph_id,
+            "event": "complete",
+            "position": graph["position"],
+        }
 
     def interrupt(self, graph_id: str) -> None:
         """Signal that execution should be paused."""

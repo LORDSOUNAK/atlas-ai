@@ -24,11 +24,18 @@ class MockRuntime(WorkflowRuntime):
 
     def execute(self, graph_id: str, config: dict | None = None) -> ExecutionResult:
         outputs = [{"text": "ok-1"}, {"text": "ok-2"}]
-        return ExecutionResult(graph_id=graph_id, status="COMPLETED", outputs=outputs)
+        return ExecutionResult(
+            graph_id=graph_id, status="COMPLETED", outputs=outputs
+        )
 
     async def astream(self, graph_id: str, config: dict | None = None):
         yield ExecutionChunk(graph_id=graph_id, event="start", position=0)
-        yield ExecutionChunk(graph_id=graph_id, event="node", node_index=0, output={"text": "chunk-0"})
+        yield ExecutionChunk(
+            graph_id=graph_id,
+            event="node",
+            node_index=0,
+            output={"text": "chunk-0"},
+        )
         yield ExecutionChunk(graph_id=graph_id, event="complete", position=1)
 
     def interrupt(self, graph_id: str) -> None:
@@ -42,7 +49,10 @@ class MockRuntime(WorkflowRuntime):
 
 
 def make_definition() -> WorkflowDefinition:
-    nodes = [WorkflowNode(id="start", type="START"), WorkflowNode(id="end", type="END")]
+    nodes = [
+        WorkflowNode(id="start", type="START"),
+        WorkflowNode(id="end", type="END"),
+    ]
     edges = [WorkflowEdge(id="e1", source="start", target="end")]
     return WorkflowDefinition(name="test", nodes=nodes, edges=edges)
 
@@ -54,7 +64,9 @@ def test_workflow_service_execute_with_mock_runtime():
     definition = make_definition()
     service.create_workflow(definition=definition, tenant_id=TenantId("t1"))
 
-    run = service.create_run(workflow_name=definition.name, tenant_id=TenantId("t1"))
+    run = service.create_run(
+        workflow_name=definition.name, tenant_id=TenantId("t1")
+    )
     # execute synchronously
     result = service.execute_run_sync(run.id)
     assert result.graph_id == run.id
@@ -70,7 +82,9 @@ def test_workflow_service_stream_with_mock_runtime():
 
     definition = make_definition()
     service.create_workflow(definition=definition, tenant_id=TenantId("t1"))
-    run = service.create_run(workflow_name=definition.name, tenant_id=TenantId("t1"))
+    run = service.create_run(
+        workflow_name=definition.name, tenant_id=TenantId("t1")
+    )
 
     async def collect_stream():
         chunks = []

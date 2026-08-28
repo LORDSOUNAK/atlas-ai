@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import pytest
+
 from aetheros.application.tools.tool_registry_service import ToolRegistryService
 from aetheros.domain.shared.exceptions import (
     ConflictError,
@@ -94,3 +96,67 @@ def test_get_tool_not_found_raises_not_found() -> None:
         assert "not found" in str(exc).lower()
     else:
         raise AssertionError("Expected NotFoundError")
+
+
+def test_get_tool_by_name_returns_matching_tool() -> None:
+    service = ToolRegistryService()
+    tool = ToolDefinition(
+        tenant_id=TenantId("tenant-1"),
+        name="weather",
+        tool_schema=ToolSchema(name="weather", description="Weather tool"),
+    )
+    service.register_tool(tool)
+
+    found = service.get_tool_by_name("weather")
+
+    assert found.id == tool.id
+    assert found.name == "weather"
+
+
+def test_get_tool_by_name_with_tenant_filter() -> None:
+    service = ToolRegistryService()
+    tool_a = ToolDefinition(
+        tenant_id=TenantId("tenant-1"),
+        name="shared",
+        tool_schema=ToolSchema(name="shared", description="Shared tool"),
+    )
+    tool_b = ToolDefinition(
+        tenant_id=TenantId("tenant-2"),
+        name="shared",
+        tool_schema=ToolSchema(name="shared", description="Shared tool"),
+    )
+    service.register_tool(tool_a)
+    service.register_tool(tool_b)
+
+    found = service.get_tool_by_name("shared", tenant_id=TenantId("tenant-1"))
+
+    assert found.id == tool_a.id
+    assert found.tenant_id == TenantId("tenant-1")
+
+
+def test_get_tool_by_name_raises_for_missing() -> None:
+    service = ToolRegistryService()
+
+    with pytest.raises(NotFoundError, match="not found"):
+        service.get_tool_by_name("missing")
+
+
+def test_delete_tool_removes_registered_tool() -> None:
+    service = ToolRegistryService()
+    tool = ToolDefinition(
+        tenant_id=TenantId("tenant-1"),
+        name="weather",
+        tool_schema=ToolSchema(name="weather", description="Weather tool"),
+    )
+    service.register_tool(tool)
+
+    service.delete_tool(tool.id)
+
+    assert len(service.list_tools()) == 0
+
+
+def test_delete_tool_raises_for_missing_tool() -> None:
+    service = ToolRegistryService()
+
+    with pytest.raises(NotFoundError, match="not found"):
+        service.delete_tool("missing-tool")

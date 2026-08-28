@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from pydantic import BaseModel, Field, model_validator
 
-from aetheros.domain.shared.value_objects import TenantId
+from aetheros.domain.shared.value_objects import TenantId, utc_now_iso
 
 
 class WorkflowNode(BaseModel):
@@ -47,3 +47,7 @@ class WorkflowRun(BaseModel):
     status: str = "PENDING"
     state: dict[str, object] = Field(default_factory=dict)
     output_data: dict[str, object] | None = None
+    started_at: str | None = None
+    ended_at: str | None = None
+    created_at: str = Field(default_factory=utc_now_iso)
+    updated_at: str = Field(default_factory=utc_now_iso)

@@ -10,6 +10,7 @@ from aetheros.domain.workflows.models import (
     WorkflowDefinition,
     WorkflowEdge,
     WorkflowNode,
+    WorkflowRun,
 )
 
 
@@ -74,3 +75,17 @@ def test_domain_models_generate_dynamic_utc_timestamps() -> None:
 
     mem = MemoryEntry(tenant_id="t1", scope=MemoryScope.SESSION, key="k", value="v")
     assert mem.created_at.endswith("Z")
+
+
+def test_workflow_run_has_timestamps() -> None:
+    run = WorkflowRun(
+        id="run-1",
+        workflow_id="demo",
+        tenant_id="tenant-1",
+        status="RUNNING",
+    )
+
+    assert run.created_at.endswith("Z")
+    assert run.updated_at.endswith("Z")
+    assert run.started_at is None
+    assert run.ended_at is None

@@ -3,8 +3,8 @@ from __future__ import annotations
 from typing import Any
 
 from aetheros.domain.memory.models import MemoryEntry, MemoryScope
-from aetheros.domain.shared.exceptions import ValidationError
-from aetheros.domain.shared.value_objects import TenantId
+from aetheros.domain.shared.exceptions import NotFoundError, ValidationError
+from aetheros.domain.shared.value_objects import MemoryEntryId, TenantId
 
 
 class MemoryService:
@@ -36,6 +36,12 @@ class MemoryService:
         self._entries.append(entry)
         return entry
 
+    def get_entry(self, entry_id: MemoryEntryId) -> MemoryEntry:
+        for entry in self._entries:
+            if entry.id == entry_id:
+                return entry
+        raise NotFoundError("Memory entry not found")
+
     def get_entries(
         self,
         tenant_id: TenantId,
@@ -51,7 +57,9 @@ class MemoryService:
         ]
         return results
 
-    def clear_entries(self, tenant_id: TenantId, scope: MemoryScope | None = None) -> int:
+    def clear_entries(
+        self, tenant_id: TenantId, scope: MemoryScope | None = None
+    ) -> int:
         before = len(self._entries)
         self._entries = [
             entry
